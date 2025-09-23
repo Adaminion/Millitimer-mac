@@ -1,0 +1,94 @@
+Millitimer - a High-Speed Camera Test App – Extended Blueprint
+
+Purpose
+-------
+Verify high-speed camera consistency by displaying a millisecond timer, a progress bar, 
+and providing analysis features like start delays and lap times.
+
+Main Screen Layout
+------------------
+1. Big Timer (centered)
+   - Format: MM:SS:MMM
+   - Adjustable digit font size and color
+   - Optional digit background color
+
+2. Custom Extra Text
+   - User-defined label (e.g., "Camera #2")
+   - Adjustable font size and color
+   - Position: left, right, top, or bottom of timer
+
+3. White Belt (Progress Bar)
+   - Fixed width 1000 px, height ~20 px
+   - Represents 1 second = 1000 ms
+   - Marker moves pixel-per-ms
+
+4. Lap Time List
+   - Appears below main display
+   - Each press of Lap Button stores the current timer reading
+   - List displays all recorded laps in chronological order
+
+Customization Options (Settings)
+--------------------------------
+Timer Options
+- Digit font size (slider / numeric input)
+- Digit font color (color picker)
+- Digit background color
+- Start Delay (seconds)
+  * User enters value (e.g., 15)
+  * Timer starts at -15.000 and counts upward until it reaches 0.000, then continues normally
+  * Milliseconds and progress bar always start from 0
+
+Extra Text Options
+- Custom text input field
+- Font size (separate slider)
+- Font color (color picker)
+- Position: top / bottom / left / right
+
+Global Background
+- Full-screen background color picker
+- (Future: allow image background)
+
+Technical Implementation
+-------------------------
+Timer
+- High-precision clock (System.nanoTime / high_resolution_clock / Stopwatch)
+- Frame-synced redraw (Choreographer / CADisplayLink / Ticker)
+- If delay set, initial value = -X s. Timer increments through negatives until reaching 0
+
+Progress Bar
+- Always starts at ms=0 each second
+- Advances pixel-by-pixel per millisecond tick
+- Resets at each new second
+
+Laps
+- Lap Button captures current time
+- Append to Lap List below timer
+- Each lap entry shows full timestamp (MM:SS:MMM)
+- Option to clear laps
+
+Persistence
+- All user settings + lap history saved in a JSON file (desktop app friendly)
+- On startup → load JSON file to restore state
+- On exit or change → auto-save JSON
+
+JSON Structure Example
+----------------------
+{
+  "timerStyle": {
+    "digitFontSize": 72,
+    "digitColor": "#FFFFFF",
+    "digitBackgroundColor": "#000000"
+  },
+  "labelStyle": {
+    "text": "Test Run",
+    "fontSize": 24,
+    "fontColor": "#FF0000",
+    "position": "right"
+  },
+  "globalBackground": "#202020",
+  "startDelaySeconds": 15,
+  "laps": [
+    "00:05:123",
+    "00:10:456"
+  ]
+}

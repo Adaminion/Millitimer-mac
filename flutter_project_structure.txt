@@ -1,0 +1,38 @@
+High-Speed Camera Test App – Flutter Project Structure (Flat Layout)
+
+/lib
+ ├── main.dart
+ ├── home_screen.dart
+ ├── settings_screen.dart
+ ├── timer_widget.dart
+ ├── progress_bar.dart
+ ├── lap_list.dart
+ ├── json_storage.dart
+ └── theme.dart
+
+File Purposes
+-------------
+
+- main.dart
+  Entry point. Runs the app, sets up routes, loads saved settings from JSON.
+
+- home_screen.dart
+  Main timer screen (big digits, extra text, progress bar, lap button).
+
+- settings_screen.dart
+  Options: font sizes, colors, start delay, background color, etc. Saves changes back to JSON.
+
+- timer_widget.dart
+  Just the timer display logic (digits only, formatted as MM:SS:MMM).
+
+- progress_bar.dart
+  White belt with moving pixel marker.
+
+- lap_list.dart
+  Widget that shows recorded laps in a list below the timer.
+
+- json_storage.dart
+  Handles saving & loading app state (settings + laps) to a JSON file. On desktop you can use path_provider + dart:io.
+
+- theme.dart
+  Central place to define colors/fonts, so they can be reused across files.
