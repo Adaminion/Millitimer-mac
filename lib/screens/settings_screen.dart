@@ -15,6 +15,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late TimerSettings _settings;
   late TextEditingController _labelTextController;
   late TextEditingController _startDelayController;
+  final FocusNode _labelTextFocusNode = FocusNode();
+  final FocusNode _startDelayFocusNode = FocusNode();
 
   @override
   void initState() {
@@ -28,7 +30,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void dispose() {
     _labelTextController.dispose();
     _startDelayController.dispose();
+    _labelTextFocusNode.dispose();
+    _startDelayFocusNode.dispose();
     super.dispose();
+  }
+
+  void _saveAndExit() {
+    Navigator.pop(context, _settings);
   }
 
   String _getColorName(Color color) {
@@ -128,12 +136,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Settings'),
+        leading: IconButton(
+          icon: const Icon(Icons.close),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
         actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context, _settings);
-            },
-            child: const Text('Save', style: TextStyle(color: Colors.white)),
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: ElevatedButton(
+              onPressed: _saveAndExit,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('OK'),
+            ),
           ),
         ],
       ),
@@ -202,6 +221,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   title: const Text('Start Delay (seconds)'),
                   subtitle: TextField(
                     controller: _startDelayController,
+                    focusNode: _startDelayFocusNode,
                     keyboardType: TextInputType.number,
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     decoration: const InputDecoration(
@@ -211,6 +231,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       setState(() {
                         _settings.startDelaySeconds = int.tryParse(value) ?? 0;
                       });
+                    },
+                    onSubmitted: (_) {
+                      _saveAndExit();
                     },
                   ),
                 ),
@@ -223,6 +246,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   title: const Text('Label Text'),
                   subtitle: TextField(
                     controller: _labelTextController,
+                    focusNode: _labelTextFocusNode,
                     decoration: const InputDecoration(
                       hintText: 'Enter custom label (e.g., Camera #2)',
                     ),
@@ -230,6 +254,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       setState(() {
                         _settings.labelText = value;
                       });
+                    },
+                    onSubmitted: (_) {
+                      _saveAndExit();
                     },
                   ),
                 ),

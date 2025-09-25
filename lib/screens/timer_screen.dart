@@ -73,13 +73,11 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
   }
 
   void _resetTimer() {
+    _stopTimer();  // Stop the timer first
     setState(() {
-      _isRunning = false;
       _elapsedMilliseconds = 0;
     });
-    _stopwatch.stop();
     _stopwatch.reset();
-    _timer?.cancel();
   }
 
   void _recordLap() {
@@ -109,20 +107,32 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
   }
 
   Widget _buildTimer() {
-    final timeString = _formatTime(_elapsedMilliseconds);
+    // Show 00:00:000 during delay countdown or when stopped
+    final timeString = (_elapsedMilliseconds < 0 || !_isRunning)
+        ? '00:00:000'
+        : _formatTime(_elapsedMilliseconds);
+
+    // Invert colors when timer is not running or during delay countdown
+    final bool isInactive = !_isRunning || _elapsedMilliseconds < 0;
+    final backgroundColor = isInactive
+        ? _settings.digitColor
+        : _settings.digitBackgroundColor;
+    final textColor = isInactive
+        ? _settings.digitBackgroundColor
+        : _settings.digitColor;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       decoration: BoxDecoration(
-        color: _settings.digitBackgroundColor,
+        color: backgroundColor,
         borderRadius: BorderRadius.circular(10),
       ),
       child: Text(
         timeString,
         style: TextStyle(
           fontSize: _settings.digitFontSize,
-          color: _settings.digitColor,
-          fontFamily: 'monospace',
+          color: textColor,
+          fontFamily: 'Courier New',
           fontWeight: FontWeight.bold,
         ),
       ),
@@ -183,6 +193,33 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
       case LabelPosition.right:
         return label;
     }
+  }
+
+  Widget _buildDelayIndicator() {
+    if (_elapsedMilliseconds >= 0 || !_isRunning) {
+      return const SizedBox.shrink();
+    }
+
+    final delaySeconds = (-_elapsedMilliseconds / 1000).ceil();
+    return Positioned(
+      top: 20,
+      right: 20,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: Colors.red.withAlpha(204),
+          borderRadius: BorderRadius.circular(5),
+        ),
+        child: Text(
+          'Starting in: $delaySeconds',
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 14,
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildTimerWithLabel() {
@@ -307,24 +344,29 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
     return Scaffold(
       backgroundColor: _settings.globalBackgroundColor,
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _buildTimerWithLabel(),
-                  const SizedBox(height: 40),
-                  _buildProgressBar(),
-                  const SizedBox(height: 40),
-                  _buildControls(),
-                  const SizedBox(height: 30),
-                  _buildLapsList(),
-                ],
+        child: Stack(
+          children: [
+            Center(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _buildTimerWithLabel(),
+                      const SizedBox(height: 40),
+                      _buildProgressBar(),
+                      const SizedBox(height: 40),
+                      _buildControls(),
+                      const SizedBox(height: 30),
+                      _buildLapsList(),
+                    ],
+                  ),
+                ),
               ),
             ),
-          ),
+            _buildDelayIndicator(),
+          ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
