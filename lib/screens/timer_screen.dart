@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/timer_settings.dart';
 import '../services/settings_service.dart';
 import 'settings_screen.dart';
@@ -279,30 +280,39 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        ElevatedButton.icon(
-          onPressed: _isRunning ? _stopTimer : _startTimer,
-          icon: Icon(_isRunning ? Icons.pause : Icons.play_arrow),
-          label: Text(_isRunning ? 'Stop' : 'Start'),
-          style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+        Tooltip(
+          message: 'Press Space',
+          child: ElevatedButton.icon(
+            onPressed: _isRunning ? _stopTimer : _startTimer,
+            icon: Icon(_isRunning ? Icons.pause : Icons.play_arrow),
+            label: Text(_isRunning ? 'Stop' : 'Start'),
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+            ),
           ),
         ),
         const SizedBox(width: 20),
-        ElevatedButton.icon(
-          onPressed: _resetTimer,
-          icon: const Icon(Icons.refresh),
-          label: const Text('Reset'),
-          style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+        Tooltip(
+          message: 'Press R',
+          child: ElevatedButton.icon(
+            onPressed: _resetTimer,
+            icon: const Icon(Icons.refresh),
+            label: const Text('Reset'),
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+            ),
           ),
         ),
         const SizedBox(width: 20),
-        ElevatedButton.icon(
-          onPressed: _isRunning ? _recordLap : null,
-          icon: const Icon(Icons.flag),
-          label: const Text('Lap'),
-          style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+        Tooltip(
+          message: 'Press L',
+          child: ElevatedButton.icon(
+            onPressed: _isRunning ? _recordLap : null,
+            icon: const Icon(Icons.flag),
+            label: const Text('Lap'),
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+            ),
           ),
         ),
       ],
@@ -362,50 +372,72 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: _settings.globalBackgroundColor,
-      body: SafeArea(
-        child: Stack(
-          children: [
-            Center(
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _buildTimerWithLabel(),
-                      const SizedBox(height: 40),
-                      _buildProgressBar(),
-                      const SizedBox(height: 40),
-                      _buildControls(),
-                      const SizedBox(height: 30),
-                      _buildLapsList(),
-                    ],
+    return KeyboardListener(
+      focusNode: FocusNode()..requestFocus(),
+      autofocus: true,
+      onKeyEvent: (KeyEvent event) {
+        if (event is KeyDownEvent) {
+          if (event.logicalKey == LogicalKeyboardKey.space) {
+            // Toggle timer with spacebar
+            if (_isRunning) {
+              _stopTimer();
+            } else {
+              _startTimer();
+            }
+          } else if (event.logicalKey == LogicalKeyboardKey.keyR) {
+            // Reset with 'R' key
+            _resetTimer();
+          } else if (event.logicalKey == LogicalKeyboardKey.keyL) {
+            // Record lap with 'L' key
+            _recordLap();
+          }
+        }
+      },
+      child: Scaffold(
+        backgroundColor: _settings.globalBackgroundColor,
+        body: SafeArea(
+          child: Stack(
+            children: [
+              Center(
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _buildTimerWithLabel(),
+                        const SizedBox(height: 40),
+                        _buildProgressBar(),
+                        const SizedBox(height: 40),
+                        _buildControls(),
+                        const SizedBox(height: 30),
+                        _buildLapsList(),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-            _buildDelayIndicator(),
-          ],
+              _buildDelayIndicator(),
+            ],
+          ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () async {
-          final updatedSettings = await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => SettingsScreen(settings: _settings),
-            ),
-          );
-          if (updatedSettings != null) {
-            setState(() {
-              _settings = updatedSettings;
-            });
-            _saveSettings();
-          }
-        },
-        child: const Icon(Icons.settings),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () async {
+            final updatedSettings = await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => SettingsScreen(settings: _settings),
+              ),
+            );
+            if (updatedSettings != null) {
+              setState(() {
+                _settings = updatedSettings;
+              });
+              _saveSettings();
+            }
+          },
+          child: const Icon(Icons.settings),
+        ),
       ),
     );
   }
