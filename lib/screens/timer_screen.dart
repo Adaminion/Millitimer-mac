@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../main.dart';
 import '../models/timer_settings.dart';
 import '../services/settings_service.dart';
 import 'settings_screen.dart';
@@ -244,6 +245,43 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
     );
   }
 
+  Widget _buildLogo() {
+    return Positioned(
+      top: 20,
+      right: 20,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Text(
+            'MilliTimer',
+            style: TextStyle(
+              fontSize: MediaQuery.of(context).size.width * 0.04, // ~4% of screen width
+              fontWeight: FontWeight.bold,
+              color: Colors.white.withValues(alpha: 0.7),
+              letterSpacing: 1.0,
+            ),
+          ),
+          Text(
+            kAppVersion,
+            style: TextStyle(
+              fontSize: MediaQuery.of(context).size.width * 0.02, // ~2% of screen width
+              color: Colors.grey[500],
+              fontWeight: FontWeight.w300,
+            ),
+          ),
+          Text(
+            'by Adaminion',
+            style: TextStyle(
+              fontSize: MediaQuery.of(context).size.width * 0.015, // ~1.5% of screen width
+              color: Colors.grey[600],
+              fontWeight: FontWeight.w300,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildTimerWithLabel() {
     final timer = _buildTimer();
     final label = _buildLabel();
@@ -418,6 +456,7 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
                 ),
               ),
               _buildDelayIndicator(),
+              _buildLogo(),
             ],
           ),
         ),
