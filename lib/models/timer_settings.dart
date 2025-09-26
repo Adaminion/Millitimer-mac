@@ -13,6 +13,7 @@ class TimerSettings {
   Color globalBackgroundColor;
   int startDelaySeconds;
   List<String> laps;
+  List<String> recentCustomTexts;
 
   TimerSettings({
     this.digitFontSize = 72,
@@ -25,7 +26,9 @@ class TimerSettings {
     this.globalBackgroundColor = const Color(0xFF202020),
     this.startDelaySeconds = 0,
     List<String>? laps,
-  }) : laps = laps ?? [];
+    List<String>? recentCustomTexts,
+  }) : laps = laps ?? [],
+       recentCustomTexts = recentCustomTexts ?? [];
 
   Map<String, dynamic> toJson() {
     return {
@@ -43,6 +46,7 @@ class TimerSettings {
       'globalBackground': '#${(((globalBackgroundColor.a * 255.0).round() & 0xff) << 24 | ((globalBackgroundColor.r * 255.0).round() & 0xff) << 16 | ((globalBackgroundColor.g * 255.0).round() & 0xff) << 8 | ((globalBackgroundColor.b * 255.0).round() & 0xff)).toRadixString(16).padLeft(8, '0')}',
       'startDelaySeconds': startDelaySeconds,
       'laps': laps,
+      'recentCustomTexts': recentCustomTexts,
     };
   }
 
@@ -58,6 +62,7 @@ class TimerSettings {
       globalBackgroundColor: _colorFromHex(json['globalBackground'] ?? '#202020'),
       startDelaySeconds: json['startDelaySeconds'] ?? 0,
       laps: List<String>.from(json['laps'] ?? []),
+      recentCustomTexts: List<String>.from(json['recentCustomTexts'] ?? []),
     );
   }
 
@@ -94,6 +99,7 @@ class TimerSettings {
     Color? globalBackgroundColor,
     int? startDelaySeconds,
     List<String>? laps,
+    List<String>? recentCustomTexts,
   }) {
     return TimerSettings(
       digitFontSize: digitFontSize ?? this.digitFontSize,
@@ -106,6 +112,22 @@ class TimerSettings {
       globalBackgroundColor: globalBackgroundColor ?? this.globalBackgroundColor,
       startDelaySeconds: startDelaySeconds ?? this.startDelaySeconds,
       laps: laps ?? List<String>.from(this.laps),
+      recentCustomTexts: recentCustomTexts ?? List<String>.from(this.recentCustomTexts),
     );
+  }
+
+  void addRecentCustomText(String text) {
+    if (text.isEmpty) return;
+
+    // Remove if already exists
+    recentCustomTexts.remove(text);
+
+    // Add to the beginning
+    recentCustomTexts.insert(0, text);
+
+    // Keep only last 20
+    if (recentCustomTexts.length > 20) {
+      recentCustomTexts = recentCustomTexts.take(20).toList();
+    }
   }
 }

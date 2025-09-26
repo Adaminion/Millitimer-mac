@@ -36,6 +36,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _saveAndExit() {
+    // Add current text to recent list if not empty
+    if (_settings.labelText.isNotEmpty) {
+      _settings.addRecentCustomText(_settings.labelText);
+    }
     Navigator.pop(context, _settings);
   }
 
@@ -242,6 +246,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _buildSection(
               'Custom Label',
               [
+                if (_settings.recentCustomTexts.isNotEmpty) ...[
+                  ListTile(
+                    title: const Text('Recent Labels'),
+                    subtitle: DropdownButton<String>(
+                      hint: const Text('Select from recent'),
+                      isExpanded: true,
+                      value: null,
+                      onChanged: (String? value) {
+                        if (value != null) {
+                          setState(() {
+                            _settings.labelText = value;
+                            _labelTextController.text = value;
+                          });
+                        }
+                      },
+                      items: _settings.recentCustomTexts.map((text) {
+                        return DropdownMenuItem<String>(
+                          value: text,
+                          child: Text(
+                            text,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ],
                 ListTile(
                   title: const Text('Label Text'),
                   subtitle: TextField(

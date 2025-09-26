@@ -225,7 +225,7 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
     final delaySeconds = (-_elapsedMilliseconds / 1000).ceil();
     return Positioned(
       bottom: 20,
-      right: 20,
+      left: 20,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
