@@ -19,6 +19,8 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
   final SettingsService _settingsService = SettingsService();
   int _elapsedMilliseconds = 0;
   bool _isRunning = false;
+  int _pausedMilliseconds = 0;  // Store time when paused
+  bool _hasStartedOnce = false;  // Track if timer has been started at least once
 
   @override
   void initState() {
@@ -45,18 +47,23 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
     if (!_isRunning) {
       setState(() {
         _isRunning = true;
-        if (_settings.startDelaySeconds > 0) {
-          _elapsedMilliseconds = -(_settings.startDelaySeconds * 1000);
+
+        // First time starting with delay
+        if (!_hasStartedOnce && _settings.startDelaySeconds > 0) {
+          _pausedMilliseconds = -(_settings.startDelaySeconds * 1000);
+          _hasStartedOnce = true;
+        }
+
+        // If we haven't started once yet (fresh start)
+        if (!_hasStartedOnce) {
+          _hasStartedOnce = true;
         }
       });
+
       _stopwatch.start();
       _timer = Timer.periodic(const Duration(milliseconds: 1), (_) {
         setState(() {
-          if (_settings.startDelaySeconds > 0 && _elapsedMilliseconds < 0) {
-            _elapsedMilliseconds = -(_settings.startDelaySeconds * 1000) + _stopwatch.elapsedMilliseconds;
-          } else {
-            _elapsedMilliseconds = _stopwatch.elapsedMilliseconds;
-          }
+          _elapsedMilliseconds = _pausedMilliseconds + _stopwatch.elapsedMilliseconds;
         });
       });
     }
@@ -66,6 +73,8 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
     if (_isRunning) {
       setState(() {
         _isRunning = false;
+        // Store the current elapsed time for resuming
+        _pausedMilliseconds = _elapsedMilliseconds;
       });
       _stopwatch.stop();
       _timer?.cancel();
@@ -73,11 +82,15 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
   }
 
   void _resetTimer() {
-    _stopTimer();  // Stop the timer first
     setState(() {
+      _isRunning = false;
       _elapsedMilliseconds = 0;
+      _pausedMilliseconds = 0;
+      _hasStartedOnce = false;
     });
+    _stopwatch.stop();
     _stopwatch.reset();
+    _timer?.cancel();
   }
 
   void _recordLap() {
@@ -107,10 +120,18 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
   }
 
   Widget _buildTimer() {
-    // Show 00:00:000 during delay countdown or when stopped
-    final timeString = (_elapsedMilliseconds < 0 || !_isRunning)
-        ? '00:00:000'
-        : _formatTime(_elapsedMilliseconds);
+    // Determine what time to display
+    String timeString;
+    if (_elapsedMilliseconds < 0 && _isRunning) {
+      // During countdown, show 00:00:000
+      timeString = '00:00:000';
+    } else if (!_hasStartedOnce) {
+      // Never started, show 00:00:000
+      timeString = '00:00:000';
+    } else {
+      // Show actual time (running or paused)
+      timeString = _formatTime(_elapsedMilliseconds);
+    }
 
     // Invert colors when timer is not running or during delay countdown
     final bool isInactive = !_isRunning || _elapsedMilliseconds < 0;
