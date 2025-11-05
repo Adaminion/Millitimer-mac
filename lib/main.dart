@@ -1,7 +1,8 @@
+// 2025-11-05
 import 'package:flutter/material.dart';
 import 'screens/splash_screen.dart';
 
-const String kAppVersion = '1.0 beta';
+const String kAppVersion = '1.6 beta';
 
 void main() {
   runApp(const MillitimerApp());

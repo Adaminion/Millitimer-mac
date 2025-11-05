@@ -51,7 +51,7 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
         _isRunning = true;
 
         // First time starting with delay
-        if (!_hasStartedOnce && _settings.startDelaySeconds > 0) {
+        if (!_hasStartedOnce && _settings.delayEnabled && _settings.startDelaySeconds > 0) {
           _pausedMilliseconds = -(_settings.startDelaySeconds * 1000);
           _hasStartedOnce = true;
         }
@@ -122,6 +122,9 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
   }
 
   Widget _buildTimer() {
+    // Check if we're in the last 50ms of countdown
+    final bool isLastMomentOfCountdown = _isRunning && _elapsedMilliseconds < 0 && _elapsedMilliseconds >= -50;
+
     // Determine what time to display
     String timeString;
     if (_elapsedMilliseconds < 0 && _isRunning) {
@@ -135,14 +138,16 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
       timeString = _formatTime(_elapsedMilliseconds);
     }
 
-    // Invert colors when timer is not running or during delay countdown
-    final bool isInactive = !_isRunning || _elapsedMilliseconds < 0;
-    final backgroundColor = isInactive
-        ? _settings.digitColor
-        : _settings.digitBackgroundColor;
-    final textColor = isInactive
-        ? _settings.digitBackgroundColor
-        : _settings.digitColor;
+    // Invert colors when timer is not running or during delay countdown (but not in last 50ms)
+    final bool isInactive = !_isRunning || (_elapsedMilliseconds < 0 && !isLastMomentOfCountdown);
+
+    // Make everything transparent during last 50ms of countdown
+    final backgroundColor = isLastMomentOfCountdown
+        ? Colors.transparent
+        : (isInactive ? _settings.digitColor : _settings.digitBackgroundColor);
+    final textColor = isLastMomentOfCountdown
+        ? Colors.transparent
+        : (isInactive ? _settings.digitBackgroundColor : _settings.digitColor);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -187,17 +192,65 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
     );
   }
 
+  Future<void> _editCustomText() async {
+    final controller = TextEditingController(text: _settings.labelText);
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Edit Custom Text'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(
+            hintText: 'Enter custom text',
+          ),
+          onSubmitted: (value) => Navigator.pop(context, value),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, controller.text),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+
+    if (result != null) {
+      setState(() {
+        _settings.labelText = result;
+        if (result.isNotEmpty) {
+          _settings.addRecentCustomText(result);
+        }
+      });
+      _saveSettings();
+    }
+  }
+
   Widget _buildLabel() {
     if (_settings.labelText.isEmpty) {
       return const SizedBox.shrink();
     }
 
-    final label = Text(
-      _settings.labelText,
-      style: TextStyle(
-        fontSize: _settings.labelFontSize,
-        color: _settings.labelFontColor,
-        fontWeight: FontWeight.bold,
+    final label = InkWell(
+      onTap: _editCustomText,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          border: Border.all(color: _settings.labelFontColor.withAlpha(77), width: 1),
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Text(
+          _settings.labelText,
+          style: TextStyle(
+            fontSize: _settings.labelFontSize,
+            color: _settings.labelFontColor,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
     );
 
@@ -223,7 +276,9 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
       return const SizedBox.shrink();
     }
 
-    final delaySeconds = (-_elapsedMilliseconds / 1000).ceil();
+    final totalSeconds = (-_elapsedMilliseconds / 1000).ceil();
+    final displayText = 'Starting in: $totalSeconds';
+
     return Positioned(
       bottom: 20,
       left: 20,
@@ -234,7 +289,7 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
           borderRadius: BorderRadius.circular(5),
         ),
         child: Text(
-          'Starting in: $delaySeconds',
+          displayText,
           style: const TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
@@ -249,35 +304,11 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
     return Positioned(
       top: 20,
       right: 20,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Text(
-            'MilliTimer',
-            style: TextStyle(
-              fontSize: MediaQuery.of(context).size.width * 0.04, // ~4% of screen width
-              fontWeight: FontWeight.bold,
-              color: Colors.white.withValues(alpha: 0.7),
-              letterSpacing: 1.0,
-            ),
-          ),
-          Text(
-            kAppVersion,
-            style: TextStyle(
-              fontSize: MediaQuery.of(context).size.width * 0.02, // ~2% of screen width
-              color: Colors.grey[500],
-              fontWeight: FontWeight.w300,
-            ),
-          ),
-          Text(
-            'by Adaminion',
-            style: TextStyle(
-              fontSize: MediaQuery.of(context).size.width * 0.015, // ~1.5% of screen width
-              color: Colors.grey[600],
-              fontWeight: FontWeight.w300,
-            ),
-          ),
-        ],
+      child: Image.asset(
+        'assets/millitimer-logo.png',
+        width: 120,
+        height: 120,
+        fit: BoxFit.contain,
       ),
     );
   }
@@ -315,43 +346,63 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
   }
 
   Widget _buildControls() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+    return Column(
       children: [
-        Tooltip(
-          message: 'Press Space',
-          child: ElevatedButton.icon(
-            onPressed: _isRunning ? _stopTimer : _startTimer,
-            icon: Icon(_isRunning ? Icons.pause : Icons.play_arrow),
-            label: Text(_isRunning ? 'Stop' : 'Start'),
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Tooltip(
+              message: 'Press Space',
+              child: ElevatedButton.icon(
+                onPressed: _isRunning ? _stopTimer : _startTimer,
+                icon: Icon(_isRunning ? Icons.pause : Icons.play_arrow),
+                label: Text(_isRunning ? 'Stop' : 'Start'),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                ),
+              ),
             ),
-          ),
+            const SizedBox(width: 20),
+            Tooltip(
+              message: 'Press R',
+              child: ElevatedButton.icon(
+                onPressed: _resetTimer,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Reset'),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                ),
+              ),
+            ),
+            const SizedBox(width: 20),
+            Tooltip(
+              message: 'Press L',
+              child: ElevatedButton.icon(
+                onPressed: _isRunning ? _recordLap : null,
+                icon: const Icon(Icons.flag),
+                label: const Text('Lap'),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                ),
+              ),
+            ),
+          ],
         ),
-        const SizedBox(width: 20),
-        Tooltip(
-          message: 'Press R',
-          child: ElevatedButton.icon(
-            onPressed: _resetTimer,
-            icon: const Icon(Icons.refresh),
-            label: const Text('Reset'),
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+        const SizedBox(height: 15),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Checkbox(
+              value: _settings.delayEnabled,
+              onChanged: (value) {
+                setState(() {
+                  _settings.delayEnabled = value ?? false;
+                });
+                _saveSettings();
+              },
             ),
-          ),
-        ),
-        const SizedBox(width: 20),
-        Tooltip(
-          message: 'Press L',
-          child: ElevatedButton.icon(
-            onPressed: _isRunning ? _recordLap : null,
-            icon: const Icon(Icons.flag),
-            label: const Text('Lap'),
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-            ),
-          ),
+            const Text('Enable Start Delay'),
+          ],
         ),
       ],
     );
@@ -462,6 +513,11 @@ class _TimerScreenState extends State<TimerScreen> with TickerProviderStateMixin
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () async {
+            // Stop timer when opening settings
+            if (_isRunning) {
+              _stopTimer();
+            }
+
             final updatedSettings = await Navigator.push(
               context,
               MaterialPageRoute(

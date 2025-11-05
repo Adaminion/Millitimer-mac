@@ -57,7 +57,7 @@ class _SplashScreenState extends State<SplashScreen> {
               'by Adaminion',
               style: TextStyle(
                 fontSize: 18,
-                color: Colors.grey[500],
+                color: Colors.blue,
                 fontWeight: FontWeight.w300,
               ),
             ),

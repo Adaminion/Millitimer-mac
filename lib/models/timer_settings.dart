@@ -12,6 +12,7 @@ class TimerSettings {
   LabelPosition labelPosition;
   Color globalBackgroundColor;
   int startDelaySeconds;
+  bool delayEnabled;
   List<String> laps;
   List<String> recentCustomTexts;
 
@@ -25,6 +26,7 @@ class TimerSettings {
     this.labelPosition = LabelPosition.top,
     this.globalBackgroundColor = const Color(0xFF202020),
     this.startDelaySeconds = 0,
+    this.delayEnabled = false,
     List<String>? laps,
     List<String>? recentCustomTexts,
   }) : laps = laps ?? [],
@@ -45,6 +47,7 @@ class TimerSettings {
       },
       'globalBackground': '#${(((globalBackgroundColor.a * 255.0).round() & 0xff) << 24 | ((globalBackgroundColor.r * 255.0).round() & 0xff) << 16 | ((globalBackgroundColor.g * 255.0).round() & 0xff) << 8 | ((globalBackgroundColor.b * 255.0).round() & 0xff)).toRadixString(16).padLeft(8, '0')}',
       'startDelaySeconds': startDelaySeconds,
+      'delayEnabled': delayEnabled,
       'laps': laps,
       'recentCustomTexts': recentCustomTexts,
     };
@@ -61,6 +64,7 @@ class TimerSettings {
       labelPosition: _positionFromString(json['labelStyle']?['position'] ?? 'top'),
       globalBackgroundColor: _colorFromHex(json['globalBackground'] ?? '#202020'),
       startDelaySeconds: json['startDelaySeconds'] ?? 0,
+      delayEnabled: json['delayEnabled'] ?? false,
       laps: List<String>.from(json['laps'] ?? []),
       recentCustomTexts: List<String>.from(json['recentCustomTexts'] ?? []),
     );
@@ -98,6 +102,7 @@ class TimerSettings {
     LabelPosition? labelPosition,
     Color? globalBackgroundColor,
     int? startDelaySeconds,
+    bool? delayEnabled,
     List<String>? laps,
     List<String>? recentCustomTexts,
   }) {
@@ -111,6 +116,7 @@ class TimerSettings {
       labelPosition: labelPosition ?? this.labelPosition,
       globalBackgroundColor: globalBackgroundColor ?? this.globalBackgroundColor,
       startDelaySeconds: startDelaySeconds ?? this.startDelaySeconds,
+      delayEnabled: delayEnabled ?? this.delayEnabled,
       laps: laps ?? List<String>.from(this.laps),
       recentCustomTexts: recentCustomTexts ?? List<String>.from(this.recentCustomTexts),
     );
