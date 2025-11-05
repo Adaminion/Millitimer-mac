@@ -1,4 +1,4 @@
-// 2025-11-05
+// 2025-11-05 ETF GITHUB WAKE UP
 import 'package:flutter/material.dart';
 import 'screens/splash_screen.dart';
 
