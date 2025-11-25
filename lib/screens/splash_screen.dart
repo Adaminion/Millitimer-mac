@@ -10,18 +10,23 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-  @override
-  void initState() {
-    super.initState();
-    // Navigate to timer screen after 2 seconds
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const TimerScreen()),
-        );
-      }
-    });
+   void _goToTimer() {
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (context) => const TimerScreen()),
+    );
   }
+  @override
+  //void initState() {
+  //  super.initState();
+    // Navigate to timer screen after 3 seconds
+ //   Future.delayed(const Duration(seconds: 3), () {
+ //     if (mounted) {
+//Navigator.of(context).pushReplacement(
+ //         MaterialPageRoute(builder: (context) => const TimerScreen()),
+ //       );
+ //     }
+ //   });
+ // }
 
   @override
   Widget build(BuildContext context) {
@@ -59,6 +64,22 @@ class _SplashScreenState extends State<SplashScreen> {
                 fontSize: 18,
                 color: Colors.blue,
                 fontWeight: FontWeight.w300,
+              ),
+            ),
+const SizedBox(height: 40),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blueAccent,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: _goToTimer,
+              child: const Text(
+                '⚠️ Use the highest screen refresh rate \nbefore recording videos! \n\n Now click me to start MilliTimer!',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16, color: Colors.white),
               ),
             ),
           ],
