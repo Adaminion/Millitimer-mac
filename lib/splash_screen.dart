@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../main.dart';
+import 'main.dart';
 import 'timer_screen.dart';
 
 class SplashScreen extends StatefulWidget {

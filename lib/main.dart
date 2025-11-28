@@ -1,6 +1,6 @@
 // 2025-11-05 ETF GITHUB WAKE UP
 import 'package:flutter/material.dart';
-import 'screens/splash_screen.dart';
+import 'splash_screen.dart';
 
 const String kAppVersion = '1.6 beta';
 

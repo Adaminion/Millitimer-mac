@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../models/timer_settings.dart';
+import 'timer_settings.dart';
 
 class SettingsScreen extends StatefulWidget {
   final TimerSettings settings;
