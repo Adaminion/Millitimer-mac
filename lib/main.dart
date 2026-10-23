@@ -1,8 +1,9 @@
-// 2025-11-05 ETF GITHUB WAKE UP
+// 2026-10-23
 import 'package:flutter/material.dart';
 import 'splash_screen.dart';
 
-const String kAppVersion = '1.6 beta';
+// Keep in sync with `version:` in pubspec.yaml.
+const String kAppVersion = '0.0.1+1';
 
 void main() {
   runApp(const MillitimerApp());
@@ -21,6 +22,29 @@ class MillitimerApp extends StatelessWidget {
       ),
       home: const SplashScreen(),
       debugShowCheckedModeBanner: false,
+      builder: (context, child) => Stack(
+        children: [
+          ?child,
+          // Top-left: the other corners hold the logo, settings button and delay indicator.
+          const Positioned(
+            left: 8,
+            top: 4,
+            child: SafeArea(
+              child: IgnorePointer(
+                child: Text(
+                  kAppVersion,
+                  textDirection: TextDirection.ltr,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Color(0xFF808080),
+                    decoration: TextDecoration.none,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

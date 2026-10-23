@@ -1,7 +1,7 @@
+// 2026-10-23
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'main.dart';
 import 'timer_settings.dart';
 import 'settings_service.dart';
 import 'settings_screen.dart';
