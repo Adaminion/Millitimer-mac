@@ -1,9 +1,9 @@
-// 2026-10-23
+// 2026-11-02
 import 'package:flutter/material.dart';
 import 'splash_screen.dart';
 
 // Keep in sync with `version:` in pubspec.yaml.
-const String kAppVersion = '0.0.1+1';
+const String kAppVersion = '0.2.1+12';
 
 void main() {
   runApp(const MillitimerApp());
